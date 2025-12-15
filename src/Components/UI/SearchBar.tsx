@@ -1,51 +1,56 @@
-import { ArrowLeftIcon, SearchIcon } from "lucide-react";
-import { useState } from "react";
+import { SearchIcon } from "lucide-react";
+import { useState, useMemo } from "react";
+
+// Dummy data for demonstration
+const dummyProducts = [
+  { id: 1, name: "Laptop" },
+  { id: 2, name: "Keyboard" },
+  { id: 3, name: "Mouse" },
+  { id: 4, name: "Monitor" },
+  { id: 5, name: "Webcam" },
+];
 
 export default function SearchBar() {
-  const [isSearchBarOpen, setIsSearchBarOpen] = useState(false);
-  return (
-    <main>
-      {!isSearchBarOpen && (
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            setIsSearchBarOpen(true);
-          }}
-          className={`${
-            isSearchBarOpen ? "hidden" : "flex"
-          } rounded-full hover:bg-gray-100 items-center gap-14`}
-        >
-          <SearchIcon className="w-6 h-6 text-gray-700" />
-          <h1 className="font-bold text-md hidden lg:block">Search</h1>
-        </button>
-      )}
+  const [query, setQuery] = useState("");
+  const [isDropdownVisible, setIsDropdownVisible] = useState(false);
 
-      {isSearchBarOpen && (
-        <section className="fixed inset-0 bg-white z-50 flex flex-col p-3">
-          <nav className="flex justify-between">
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                setIsSearchBarOpen(false);
+  const results = useMemo(() => {
+    if (query.length === 0) return [];
+    return dummyProducts.filter((product) =>
+      product.name.toLowerCase().includes(query.toLowerCase())
+    );
+  }, [query]);
+
+  return (
+    <div className="relative w-full">
+      <div className="relative">
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onFocus={() => setIsDropdownVisible(true)}
+          onBlur={() => setTimeout(() => setIsDropdownVisible(false), 100)}
+          placeholder="Search for products..."
+          className="border rounded-full w-full text-lg px-5 py-3 pr-12"
+        />
+        <SearchIcon className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" />
+      </div>
+      {isDropdownVisible && results.length > 0 && (
+        <ul className="absolute top-full left-0 right-0 bg-white border rounded-lg mt-2 shadow-lg z-10">
+          {results.map((product) => (
+            <li
+              key={product.id}
+              className="px-5 py-3 hover:bg-gray-100 cursor-pointer"
+              onMouseDown={() => {
+                setQuery(product.name);
+                setIsDropdownVisible(false);
               }}
             >
-              <ArrowLeftIcon className="text-2xl" />
-            </button>
-
-            <input
-              type="search"
-              name=""
-              id=""
-              placeholder="Search..."
-              className="border rounded-full w-full text-sm px-3 py-2 m-2 "
-            />
-          </nav>
-          <ul className="p-2 gap-3 flex flex-col ">
-            <li> First Result </li>
-            <li> Second Result </li>
-          </ul>
-        </section>
+              {product.name}
+            </li>
+          ))}
+        </ul>
       )}
-    </main>
+    </div>
   );
 }
